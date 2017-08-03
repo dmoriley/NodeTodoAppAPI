@@ -5,8 +5,21 @@ const request = require('supertest');
 const {app} = require('../server/server');
 const {Todo} = require('../models/todo');
 
-beforeEach((done) => { //before each test case clear the database of todos
-    Todo.remove({}).then(() => done());
+//dummy todos
+const todos = [
+    {
+        text:'first test todo',
+
+    },
+    {
+        text:'second test todo'
+    }
+];
+
+beforeEach((done) => { //before each test case clear the database of todos and add the dummys
+    Todo.remove({}).then(() => {
+        return Todo.insertMany(todos);
+    }).then(() => done());
 });
 
 describe('POST/todos', () => {
@@ -26,7 +39,7 @@ describe('POST/todos', () => {
                 }
 
                 //now check database to see if the file was inserted 
-                Todo.find().then((todos) => { //using mongoose to query the database
+                Todo.find({text}).then((todos) => { //using mongoose to query the database
                     expect(todos.length).toBe(1);
                     expect(todos[0].text).toBe(text);
                     done();
@@ -47,12 +60,26 @@ describe('POST/todos', () => {
                     return done(err);
                 }
                 Todo.find().then((todos) => {
-                        expect(todos.length).toBe(0);
+                        expect(todos.length).toBe(2);
                         done();
                 }).catch((e) => done(e));
             });
     });
 
 
+
+});
+
+describe('GET/todos', () => {
+
+    it('should get all the todos in the database', (done) => {
+        request(app)
+            .get('/todos')
+            .expect(200)
+            .expect((res) => {
+                expect(res.body.todos.length).toBe(2);
+            })
+            .end(done);
+    });
 
 });
