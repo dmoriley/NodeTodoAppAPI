@@ -24,9 +24,19 @@ app.post('/todos', (req, res) => {
     });
 });
 
+app.get('/todos', (req, res) => {
+    // console.log(req.query);  //to get all the parameters passed in the url
+    Todo.find().then((todos) => {
+        res.status(200).send({todos}); //better to send a object back (es6 style) so you can attach things to it if necessary
+    }, (err) => {
+        console.log('Unable to connect to database\n',err);
+    });
+
+});
+
 
 app.listen(port, () => {
-    console.log('Started on port 3000');
+    console.log('Started on port', port);
 });
 
 module.exports = {app};
