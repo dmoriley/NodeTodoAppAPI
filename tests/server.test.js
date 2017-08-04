@@ -11,22 +11,22 @@ const {User} = require('../models/user');
 const todos = [
     {
         text:'first test todo',
-        _id: new ObjectId('59848551296b040614f00ecd')
+        _id: new ObjectId()
 
     },
     {
         text:'second test todo',
-        _id: new ObjectId('59848551296b040614f00ece')
+        _id: new ObjectId()
     }
 ];
 
 
 const users = [
-    {email: 'david.m.oriley@hotmail.com', _id: new ObjectId('598484047ed52222541fdaab')},
-    {email: 'david.m.oriley@gmail.com', _id: new ObjectId('59848551296b040614f00ecf')},
-    {email: 'david.oriley@dcmail.ca',  _id: new ObjectId('59848551296b040614f00ed0')},
-    {email: 'david_oriley@yahoo.ca',  _id: new ObjectId('59848551296b040614f00ed1')},
-    {email: 'david.oriley@cgi.com',  _id: new ObjectId('59848551296b040614f00ed2')}
+    {email: 'david.m.oriley@hotmail.com', _id: new ObjectId()},
+    {email: 'david.m.oriley@gmail.com', _id: new ObjectId()},
+    {email: 'david.oriley@dcmail.ca',  _id: new ObjectId()},
+    {email: 'david_oriley@yahoo.ca',  _id: new ObjectId()},
+    {email: 'david.oriley@cgi.com',  _id: new ObjectId()}
 ]
 beforeEach((done) => { //before each test case clear the database of todos and add the dummys
     Todo.remove({}).then(() => {
@@ -38,11 +38,6 @@ beforeEach((done) => { //before each test case clear the database of todos and a
     }).then(() => done());
 });
 
-// beforeEach((done) => { //before each test case clear the database of todos and add the dummys
-//     Todo.remove({}).then(() => {
-//        return User.remove({});
-//     }).then(() => done());
-// });
 
 describe('POST/todos', () => {
     it('should create a new todo', (done) => {
@@ -104,13 +99,37 @@ describe('GET/todos', () => {
             .end(done);
     });
 
+});
+
+describe('GET /todos/:id', () => {
+
     it('should get one todo from the database with id', (done) => {
         request(app)
-            .get(`/todos/${todos[0]._id}`)
+            .get(`/todos/${todos[0]._id.toHexString()}`)
             .expect(200)
             .expect((res) => {
                 expect(res.body.todo).toExist();
-                expect(res.body.todo._id).toEqual(todos[0]._id);
+                expect(res.body.todo.text).toEqual(todos[0].text);
+            })
+            .end(done);
+    });
+
+    it('should respond with a 404 because id is not in database', (done) => {
+        request(app)
+            .get(`/todos/${new ObjectId().toHexString()}`)
+            .expect(404)
+            .expect((res) => {
+                expect(res.body.error).toBe('TODO_DOESNT_EXIST');
+            })
+            .end(done);
+    });
+
+    it('should respond with 404 because the id is invalid', (done) => {
+        request(app)
+            .get('/todos/123')
+            .expect(404)
+            .expect((res) => {
+                expect(res.body.error).toBe('INVALID_ID');
             })
             .end(done);
     });
