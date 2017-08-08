@@ -36,6 +36,8 @@ app.get('/todos', (req, res) => {
 
 });
 
+
+
 //colon followed by a name (:id) is knows as a url parameter used to pass parameters. Guess you could also use the ?id=123 but who knows
 app.get('/todos/:id', (req, res) => {
     var id = req.params.id;
@@ -52,7 +54,27 @@ app.get('/todos/:id', (req, res) => {
     }).catch((e) => {
         res.status(400).send();
     });
-})  
+});  
+
+//delete a todo by id
+app.delete('/todos/:id', (req, res) => {
+    var id = req.params.id;
+    if(!ObjectId.isValid(id)) {
+        return res.status(400).send({error: 'INVALID_ID'});
+    }
+
+    Todo.findByIdAndRemove(id).then((todo) => {
+        if(!todo) { //check if todo is null, meaning that there wasnt a todo to delete
+            return res.status(404).send({error: 'TODO_DOSENT_EXIST'});
+        }
+
+        //otherwise continue 
+        res.send({result: 'DOCUMENT_REMOVED',todo});
+
+    }).catch((err) => {
+        res.status(400).send({error: 'UNKNOWN_ERROR', errObj: err})
+    });
+});
 
 
 app.listen(port, () => {
