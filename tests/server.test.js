@@ -135,3 +135,50 @@ describe('GET /todos/:id', () => {
     });
 
 });
+
+describe('DELETE todos/:id', () => {
+
+    it('should delete one todo from the database', (done) => {
+        var hexId = todos[0]._id.toHexString();
+
+        request(app)
+            .delete(`/todos/${hexId}`)
+            .expect(200)
+            .expect((res) => {
+                expect(res.body.todo._id).toEqual(hexId);
+            })
+            .end((err, res) => { //this is asyc because the stuff in end can execute while the next it('should...) executes
+                if(err) {
+                    return done(err);
+                }
+
+                //now that it has been deleted from database test that it no longer exists in the database
+                Todo.findById(hexId).then((todo) => {
+                    expect(todo).toNotExist();
+                    done();
+                }).catch((e) => done(e));
+            });
+    });
+
+    it('should respond with 404 because todo doenst exist', (done) => {
+        request(app)
+            .delete(`/todos/${new ObjectId().toHexString()}`)
+            .expect(404)
+            .expect((res) => {
+                expect(res.body.error).toBe('TODO_DOSENT_EXIST');
+            })
+            .end(done);
+    });
+
+    it('should respond with 400 because invalid object id', (done) => {
+        request(app)
+            .delete('/todos/123')
+            .expect(400)
+            .expect((res) => {
+                expect(res.body.error).toBe('INVALID_ID');
+            })
+            .end(done);
+    });
+
+
+});
