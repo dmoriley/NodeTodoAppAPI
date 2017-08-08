@@ -1,6 +1,7 @@
 const express = require('express');
 const bodyParser = require('body-parser');
 const {ObjectId} = require('mongodb');
+const _ = require('lodash');
 
 const port = process.env.PORT || 3000;
 
@@ -72,7 +73,36 @@ app.delete('/todos/:id', (req, res) => {
         res.send({result: 'DOCUMENT_REMOVED',todo});
 
     }).catch((err) => {
-        res.status(400).send({error: 'UNKNOWN_ERROR', errObj: err})
+        res.status(400).send({error: 'UNKNOWN_ERROR', errObj: err});
+    });
+});
+
+app.patch('/todos/:id', (req, res) => {
+    var id = req.params.id;
+    //lodash pick method will seach a object/array for the supplied arguments. This will limit updating the 
+    //requested object with things we dont want added or that the user is not allowed to update
+    var body = _.pick(req.body, ['text','completed']);
+
+    if(!ObjectId.isValid(id)) {
+        return res.status(400).send({error: 'INVALID_ID'});
+    }
+
+    if(_.isBoolean(body.completed) && body.completed) {
+        body.completedAt = new Date().getTime();
+    }
+    else {
+        body.completed = false;
+        body.completedAt = null; //clear field from database
+    }
+                                                //same as return original from MongoDBClient
+    Todo.findByIdAndUpdate(id, {$set: body}, {new: true}).then((todo) => {
+        if(!todo) { //check if todo is null, meaning that there wasnt a todo to update
+            return res.status(404).send({error: 'TODO_DOSENT_EXIST'});
+        }
+
+        res.send({message: 'DOCUMENT_UPDATED', todo})
+    }).catch((e) => {
+        res.status(400).send({error: 'UNKNOWN_ERROR', errObj: err});
     });
 });
 
