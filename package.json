@@ -3,9 +3,10 @@
   "version": "1.0.0",
   "description": "Add for todo's",
   "main": "index.js",
+  "//": "THIS IS A COMMENT... the export/SET sets the environment variable so that it knows which database to connect to. Export is linux/mac and SET is windows",
   "scripts": {
     "start": "node server/server.js",
-    "test": "mocha tests/**/*.test.js",
+    "test": "export NODE_ENV=test || SET \"NODE_ENV=test\" && mocha tests/**/*.test.js",
     "test-watch": "nodemon --exec \"npm test\""
   },
   "engines": {

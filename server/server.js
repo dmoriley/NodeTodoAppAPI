@@ -8,6 +8,7 @@ const port = process.env.PORT || 3000;
 
 //local imports
 var {mongoose} = require('../db/mongoose');
+require('../db/config/config');
 var {Todo} = require('../models/todo');
 var {User} = require('../models/user');
 
