@@ -16,7 +16,9 @@ const todos = [
     },
     {
         text:'second test todo',
-        _id: new ObjectId()
+        _id: new ObjectId(),
+        completed: true,
+        completedAt: 343
     }
 ];
 
@@ -31,11 +33,13 @@ const users = [
 beforeEach((done) => { //before each test case clear the database of todos and add the dummys
     Todo.remove({}).then(() => {
        return Todo.insertMany(todos);
-    }).then(() => {
-       return User.remove({});
-    }).then(() => {
-       return User.insertMany(users);
-    }).then(() => done());
+    })
+    // .then(() => {
+    //    return User.remove({});
+    // }).then(() => {
+    //    return User.insertMany(users);
+    // })
+    .then(() => done());
 });
 
 
@@ -181,4 +185,53 @@ describe('DELETE todos/:id', () => {
     });
 
 
+});
+
+describe('PATCH /todos/:id', () => {
+
+    it('should update the todo', (done) => {
+        var newTxt = 'this is the updated text';
+        request(app)
+            .patch(`/todos/${todos[0]._id}`)
+            .send({text: newTxt, completed: true})
+            .expect(200)
+            .expect((res) => {
+                expect(res.body.todo.completed).toBe(true);
+                expect(res.body.todo.text).toBe(newTxt);
+                expect(res.body.todo.completedAt).toBeA('number');
+            })
+            .end(done);
+    });
+
+    it('should clear completedAt when todo is not completed', (done) => {
+        request(app)
+            .patch(`/todos/${todos[1]._id}`)
+            .send({completed: false})
+            .expect(200)
+            .expect((res) => {
+                expect(res.body.todo.completed).toBe(false);
+                expect(res.body.todo.completedAt).toNotExist();
+            })
+            .end(done);
+    });
+
+    it('should respond with 404 because todo doenst exist', (done) => {
+        request(app)
+            .patch(`/todos/${new ObjectId().toHexString()}`)
+            .expect(404)
+            .expect((res) => {
+                expect(res.body.error).toBe('TODO_DOSENT_EXIST');
+            })
+            .end(done);
+    });
+
+    it('should respond with 400 because invalid object id', (done) => {
+        request(app)
+            .patch('/todos/123')
+            .expect(400)
+            .expect((res) => {
+                expect(res.body.error).toBe('INVALID_ID');
+            })
+            .end(done);
+    });
 });
