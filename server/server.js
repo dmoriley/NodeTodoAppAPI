@@ -7,8 +7,8 @@ const port = process.env.PORT || 3000;
 
 
 //local imports
+require('../db/config/config'); //need config first
 var {mongoose} = require('../db/mongoose');
-require('../db/config/config');
 var {Todo} = require('../models/todo');
 var {User} = require('../models/user');
 
@@ -27,6 +27,23 @@ app.post('/todos', (req, res) => {
         res.status(400).send(e);
     });
 });
+
+app.post('/users',(req,res) => {
+    var body = _.pick(req.body,['email','password']);
+    var user = new User({
+        email: body.email,
+        password: body.password
+    });
+
+    user.save().then(() => {
+        return user.generateAuthToken(); //returns a promise with token as its return
+    }).then((token) => {  //token the return of the promise from generateAuthToken
+        //x- prefix in header is how to create CUSTOM header for own purposes
+        res.header('x-auth',token).send(user); //sending user after new token added
+    }).catch((e) => {
+        res.status(400).send(e);
+    })
+})
 
 app.get('/todos', (req, res) => {
     // console.log(req.query);  //to get all the parameters passed in the url with the ?id=123 method
