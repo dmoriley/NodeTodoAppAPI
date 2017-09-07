@@ -47,6 +47,26 @@ UserSchema.methods.generateAuthToken = function() {  //arrow functions dont bind
     });
 };
 
+//.statics lets you create class methods
+UserSchema.statics.findByToken = function(token) {
+    var User = this;  //the class/model is the this
+    var decoded;
+
+    try {
+        decoded = jwt.verify(token, 'ballislife');
+    } catch(e) {
+        return Promise.reject();
+    }
+
+    //returning function for promise chaining somewhere else
+    return User.findOne({
+        _id: decoded._id,
+        'tokens.token':token, //quotes needed when there is a period in the value
+        'tokens.access':decoded.access
+    });
+};
+
+//overriding the toJSON method so that it only shows the id and email and not the password and tokens data
 UserSchema.methods.toJSON = function() {
     var user = this;
     var userObject = user.toObject();

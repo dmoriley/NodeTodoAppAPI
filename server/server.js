@@ -11,6 +11,7 @@ require('../db/config/config'); //need config first
 var {mongoose} = require('../db/mongoose');
 var {Todo} = require('../models/todo');
 var {User} = require('../models/user');
+var {authenticate} = require('./middleware/authenticate');
 
 var app = express();
 
@@ -44,6 +45,12 @@ app.post('/users',(req,res) => {
         res.status(400).send(e);
     })
 })
+
+//validates user against the authenticate middleware first
+app.get('/users/me', authenticate, (req, res) => {
+    res.send(req.user);
+});
+
 
 app.get('/todos', (req, res) => {
     // console.log(req.query);  //to get all the parameters passed in the url with the ?id=123 method
