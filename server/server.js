@@ -42,7 +42,7 @@ app.post('/users',(req,res) => {
         //x- prefix in header is how to create CUSTOM header for own purposes
         res.header('x-auth',token).send(user); //sending user after new token added
     }).catch((e) => {
-        res.status(400).send(e);
+        res.status(400).send({errorMessage: 'INVALID_USER_INFORMATION', error:e});
     })
 })
 
