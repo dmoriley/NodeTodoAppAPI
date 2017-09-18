@@ -24,7 +24,6 @@ bcrypt.compare(password, hashedPassword, (err,res) => {
 
 // var token = jwt.sign({data,access:'test123'}, '123abc'); //the secret(second param) is your salt for the hash
 // console.log(token);
-
 // var decoded = jwt.verify(token, "123abc");
 
 // console.log('decoded', decoded);
