@@ -67,6 +67,25 @@ UserSchema.statics.findByToken = function(token) {
     });
 };
 
+UserSchema.statics.findByCredentials = function(email,password) {
+    var User = this;
+
+    return User.findOne({email}).then((user) => {
+        if(!user) {
+            return Promise.reject({error: "USER_DOESNT_EXIST"}); //triggers catch black in whatever is handling the function somwhere else
+        }
+        //return new promise because bcrypt only supports callbacks, not promise so have to make our own
+        return new Promise((resolve, reject) => {
+            bcrypt.compare(password,user.password, (err, res) => {
+                if(!res) {
+                    reject({error: "INCORRECT_PASSWORD"});
+                }
+                resolve(user);
+            });
+        });
+    });
+};
+
 //overriding the toJSON method so that it only shows the id and email and not the password and tokens data
 UserSchema.methods.toJSON = function() {
     var user = this;

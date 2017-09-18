@@ -2,6 +2,7 @@ const express = require('express');
 const bodyParser = require('body-parser');
 const {ObjectId} = require('mongodb');
 const _ = require('lodash');
+const bcrypt = require('bcryptjs');
 
 const port = process.env.PORT || 3000;
 
@@ -44,7 +45,19 @@ app.post('/users',(req,res) => {
     }).catch((e) => {
         res.status(400).send({errorMessage: 'INVALID_USER_INFORMATION', error:e});
     })
-})
+});
+
+app.post('/users/login', (req,res) => {
+    var body = _.pick(req.body, ['email', 'password']);
+
+    User.findByCredentials(body.email,body.password).then((user) => {
+        user.generateAuthToken().then((token) => {
+            res.header('x-auth', token).send(user);
+        });
+    }).catch((e) => {
+        res.status(400).send(e);
+    });
+});
 
 //validates user against the authenticate middleware first
 app.get('/users/me', authenticate, (req, res) => {
