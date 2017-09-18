@@ -223,7 +223,7 @@ describe('GET /users/me', () => {
             .get('/users/me')
             .expect(401)
             .expect((res) => {
-                expect(res.body).toEqual({});
+                expect(res.body.error).toBe('UNAUTHORIZED');
             })
             .end(done);
     });
@@ -372,3 +372,34 @@ describe('POST /users/login', () => {
             });
     });
 });
+
+describe('DELETE /users/me/token', () => {
+    
+        it('should remove auth token on logout', (done) => {
+            request(app)
+                .delete('/users/me/token')
+                .set('x-auth',users[0].tokens[0].token)
+                .expect(200)
+                .end((err, res) => {
+                    if(err) {
+                        return done(err);
+                    }
+    
+                    User.findById(users[0]._id).then((user) => {
+                        expect(user.tokens.length).toBe(0);
+                        done();
+                    }).catch((e) => done(e));
+                });
+    
+        });
+
+        it('should receive a 401 because unauthorized', (done) =>{
+            request(app)
+                .delete('/users/me/token')
+                .expect(401)
+                .expect((res) => {
+                    expect(res.body.error).toBe('UNAUTHORIZED');
+                })
+                .end(done);
+        });
+    });
