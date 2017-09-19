@@ -14,7 +14,7 @@ var users = [
         password: 'userOnePassword',
         tokens: [{
             access: 'auth',
-            token: jwt.sign({_id: userOneId, access: 'auth'}, 'ballislife').toString()
+            token: jwt.sign({_id: userOneId, access: 'auth'}, process.env.JWT_SECRET).toString()
         }]
     }, {
         email: 'david_oriley@yahoo.ca', 
@@ -22,7 +22,7 @@ var users = [
         password: 'userTwoPassword',
         tokens: [{
             access: 'auth',
-            token: jwt.sign({_id: userTwoId, access: 'auth'}, 'ballislife').toString()
+            token: jwt.sign({_id: userTwoId, access: 'auth'}, process.env.JWT_SECRET).toString()
         }]
     }
 ]

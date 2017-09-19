@@ -37,7 +37,7 @@ var UserSchema = new mongoose.Schema({
 UserSchema.methods.generateAuthToken = function() {  //arrow functions dont bind a this keyword, so need to use regular function
     var user = this; //this: the object calling the method
     var access = 'auth';                              //added access with es6  
-    var token = jwt.sign({_id: user._id.toHexString(), access},'ballislife');
+    var token = jwt.sign({_id: user._id.toHexString(), access},process.env.JWT_SECRET);
 
     user.tokens.push({access,token});
 
@@ -64,7 +64,7 @@ UserSchema.statics.findByToken = function(token) {
     var decoded;
 
     try {
-        decoded = jwt.verify(token, 'ballislife');
+        decoded = jwt.verify(token, process.env.JWT_SECRET);
     } catch(e) {
         return Promise.reject();
     }
