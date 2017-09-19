@@ -19,21 +19,27 @@ var users = [
     }, {
         email: 'david_oriley@yahoo.ca', 
         _id: userTwoId,
-        password: 'userTwoPassword'
+        password: 'userTwoPassword',
+        tokens: [{
+            access: 'auth',
+            token: jwt.sign({_id: userTwoId, access: 'auth'}, 'ballislife').toString()
+        }]
     }
 ]
 //dummy todos
 var todos = [
     {
         text:'first test todo',
-        _id: new ObjectId()
+        _id: new ObjectId(),
+        _creator: userOneId
 
     },
     {
         text:'second test todo',
         _id: new ObjectId(),
         completed: true,
-        completedAt: 343
+        completedAt: 343,
+        _creator: userTwoId
     }
 ];
 
