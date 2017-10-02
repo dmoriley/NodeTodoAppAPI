@@ -31,33 +31,61 @@ app.post('/todos', authenticate, (req, res) => {
     });
 });
 
-app.post('/users',(req,res) => {
+app.post('/users', async (req,res) => {
     var body = _.pick(req.body,['email','password']);
     var user = new User({
         email: body.email,
         password: body.password
     });
 
-    user.save().then(() => {
-        return user.generateAuthToken(); //returns a promise with token as its return
-    }).then((token) => {  //token the return of the promise from generateAuthToken
+    try {
+        await user.save();
+        const token = await user.generateAuthToken();
         //x- prefix in header is how to create CUSTOM header for own purposes
         res.header('x-auth',token).send(user); //sending user after new token added
-    }).catch((e) => {
+    } catch(e) {
         res.status(400).send({errorMessage: 'INVALID_USER_INFORMATION', error:e});
-    })
+    }
+
+    /* 
+        var body = _.pick(req.body,['email','password']);
+        var user = new User({
+            email: body.email,
+            password: body.password
+        });
+
+        user.save().then(() => {
+            return user.generateAuthToken(); //returns a promise with token as its return
+        }).then((token) => {  //token the return of the promise from generateAuthToken
+            //x- prefix in header is how to create CUSTOM header for own purposes
+            res.header('x-auth',token).send(user); //sending user after new token added
+        }).catch((e) => {
+            res.status(400).send({errorMessage: 'INVALID_USER_INFORMATION', error:e});
+        }) 
+    */
 });
 
-app.post('/users/login', (req,res) => {
-    var body = _.pick(req.body, ['email', 'password']);
-
-    User.findByCredentials(body.email,body.password).then((user) => {
-        user.generateAuthToken().then((token) => {
-            res.header('x-auth', token).send(user);
-        });
-    }).catch((e) => {
+app.post('/users/login', async (req,res) => {
+    try{
+        const body = _.pick(req.body, ['email', 'password']);
+        const user = await User.findByCredentials(body.email,body.password);
+        const token = await user.generateAuthToken();
+        res.header('x-auth', token).send(user);
+    } catch(e) {
         res.status(400).send(e);
-    });
+    }
+    //Old method with promises
+    /*
+        var body = _.pick(req.body, ['email', 'password']);
+    
+        User.findByCredentials(body.email,body.password).then((user) => {
+            user.generateAuthToken().then((token) => {
+                res.header('x-auth', token).send(user);
+            });
+        }).catch((e) => {
+            res.status(400).send(e);
+        });
+     */
 });
 
 //validates user against the authenticate middleware first
@@ -101,34 +129,46 @@ app.get('/todos/:id', authenticate, (req, res) => {
 });  
 
 //delete a todo by id
-app.delete('/todos/:id',authenticate, (req, res) => {
+app.delete('/todos/:id',authenticate, async (req, res) => {
     var id = req.params.id;
     if(!ObjectId.isValid(id)) {
         return res.status(400).send({error: 'INVALID_ID'});
     }
 
-    Todo.findOneAndRemove({
-        _id:id,
-        _creator:req.user._id
-    }).then((todo) => {
+    try {
+        var todo = await Todo.findOneAndRemove({_id:id,_creator:req.user._id});
         if(!todo) { //check if todo is null, meaning that there wasnt a todo to delete
             return res.status(404).send({error: 'TODO_DOSENT_EXIST'});
         }
-
-        //otherwise continue 
         res.send({result: 'DOCUMENT_REMOVED',todo});
-
-    }).catch((err) => {
+    } catch(e) {
         res.status(400).send({error: 'UNKNOWN_ERROR', errObj: err});
-    });
+    }
+    
+    /*
+        Todo.findOneAndRemove({
+            _id:id,
+            _creator:req.user._id
+        }).then((todo) => {
+            if(!todo) { //check if todo is null, meaning that there wasnt a todo to delete
+                return res.status(404).send({error: 'TODO_DOSENT_EXIST'});
+            }
+            //otherwise continue 
+            res.send({result: 'DOCUMENT_REMOVED',todo});
+
+        }).catch((err) => {
+            res.status(400).send({error: 'UNKNOWN_ERROR', errObj: err});
+        });
+    */
 });
 
-app.delete('/users/me/token',authenticate, (req, res) => {
-    req.user.removeToken(req.token).then(() => {
+app.delete('/users/me/token',authenticate, async (req, res) => {
+    try {
+        await req.user.removeToken(req.token);
         res.status(200).send();
-    }, () => {
+    } catch(e) {
         res.status(400).send();
-    });
+    }
 });
 
 app.patch('/todos/:id',authenticate, (req, res) => {
